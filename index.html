@@ -58,13 +58,12 @@
                     console.log('granted');
                     document.requestStorageAccessFor(root);
                 } else if (res.state === 'prompt') {
-                    // window.addEventListener('click', () => {document.requestStorageAccessFor(root);});
                     console.log('no access');
                     if (checkOTCookies()) {
-                        clearOTCookies();
-                        OneTrust.InitializeBanner()
-                        OneTrust.LoadBanner();
-                    }
+                    //     clearOTCookies();
+                    //     OneTrust.InitializeBanner();
+                    //     OneTrust.LoadBanner();
+                    // }
                 }
             });
         }
