@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>child A</title>
+
+    <script>
+        const root = 'https://dzmarzlak1.github.io/';
+        const OTCookieNames = ['OptanonConsent', 'eupubconsent-v2', 'OptanonAlertBoxClosed'];
+        const loaded = false;
+
+        function loadIframe() {
+            const iframe = document.createElement('iframe');
+            iframe.id = 'fps';
+            iframe.setAttribute('src', root);
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+        }
+
+        function getCookies() {
+            navigator.permissions.query({ name: 'top-level-storage-access', requestedOrigin: root }).then(res => {
+                if (res.state === 'granted') {
+                    console.log('granted');
+                } else if (res.state === 'prompt') {
+                    console.log('no access');
+                }
+            });
+            document.querySelector('iframe#fps').contentWindow.postMessage({ command: 'getCookies' }, '*');
+        }
+
+        function setCookie(name, value) {
+            document.querySelector('iframe#fps').contentWindow.postMessage({ command: 'setCookie', name, value }, '*');
+        }
+
+        function checkOTCookies() {
+            return document.cookie.split('; ').filter(cookie => OTCookieNames.some(name => cookie.startsWith(name))).length > 1;
+        }
+
+        function clearOTCookies() {
+            console.log('clear');
+            OTCookieNames.forEach(name => document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`);
+        }
+
+        function onOTLoad() {
+            if (!loaded) {
+                OneTrust.OnConsentChanged(function(event) {
+                    if (event.detail) {
+                        grantAccess();
+                    }
+                });
+                requestStorageAccess();
+                loaded = true;
+            }
+        }
+
+        function requestStorageAccess() {
+            navigator.permissions.query({ name: 'top-level-storage-access', requestedOrigin: root }).then(res => {
+                if (res.state === 'granted') {
+                    console.log('granted');
+                    document.requestStorageAccessFor(root);
+                } else if (res.state === 'prompt') {
+                    // window.addEventListener('click', () => {document.requestStorageAccessFor(root);});
+                    console.log('no access');
+                    if (checkOTCookies()) {
+                        clearOTCookies();
+                        OneTrust.InitializeBanner()
+                        OneTrust.LoadBanner();
+                    }
+                }
+            });
+        }
+
+        async function grantAccess() {
+            console.log('request for access');
+            const res = await document.requestStorageAccessFor(root);
+        }
+
+        window.addEventListener('message', (event) => {
+            console.log('Received shared cookies:', event.data);
+        });
+
+        window.onload = () => {
+            loadIframe();
+        }
+    </script>
+    <!-- OneTrust Cookies Consent Notice start for tvn24.pl -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js" data-document-language="true" type="text/javascript" charset="UTF-8" data-domain-script="1310db55-16a0-4029-aee5-9253581c6a12-test" ></script>
+<script type="text/javascript">
+function OptanonWrapper() {
+    onOTLoad();
+}
+</script>
+<!-- OneTrust Cookies Consent Notice end for tvn24.pl -->
+</head>
+<body>
+    <!-- <button onclick="grantAccess()">Grant access</button> -->
+</body>
+</html>
